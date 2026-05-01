@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "EnemyCharacter.h"
 #include "PlayerCharacter.generated.h"
+
 
 UCLASS()
 class MGP_2526_API APlayerCharacter : public ACharacter
@@ -45,8 +47,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float SprintSpeed = 1000.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	EAttackType CurrentAttackType = EAttackType::Fire;
+
 	void StartSprint();
 	void StopSprint();
+	void Attack();
+
 
 
 

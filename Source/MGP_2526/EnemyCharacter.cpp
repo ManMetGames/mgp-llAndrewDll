@@ -24,11 +24,28 @@ void AEnemyCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
-// Called to bind functionality to input
-void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AEnemyCharacter::TakeAttackDamage(float damage, EAttackType AttackType)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	float FinalDamage = damage;
 
+	if (AttackType == Weakness)
+	{
+		FinalDamage *= 2.0f;
+		UE_LOG(LogTemp, Warning, TEXT("WEAK HIT"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Normal hit"));
+	}
+
+	Health -= FinalDamage;
+
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Health: %f"), Health);
+
+	if (Health <= 0.0f)
+	{
+		Destroy();
+	}
 }
+
 

@@ -6,6 +6,16 @@
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+	Normal,
+	Fire,
+	Ice,
+	Shock
+};
+
+
 UCLASS()
 class MGP_2526_API AEnemyCharacter : public ACharacter
 {
@@ -23,7 +33,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	UPROPERTY(EditAnywhere, Category = "Enemy")
+	float Health = 100.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Enemy")
+	EAttackType Weakness = EAttackType::Fire;
+
+	void TakeAttackDamage(float Damage, EAttackType AttackType);
+
+
+
+	
 
 };
