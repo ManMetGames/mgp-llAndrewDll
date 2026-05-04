@@ -19,6 +19,6 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "AI")
-	float AcceptanceRadius = 100.0f;
+	float AcceptanceRadius = 125.0f;
 	
 };

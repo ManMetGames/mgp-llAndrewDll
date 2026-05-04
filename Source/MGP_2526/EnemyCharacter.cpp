@@ -14,6 +14,13 @@ AEnemyCharacter::AEnemyCharacter()
 	AIControllerClass = AEnemyCharacter::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
+	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+
+	bUseControllerRotationYaw = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 300.0f, 0.0f);
+
 }
 
 // Called when the game starts or when spawned

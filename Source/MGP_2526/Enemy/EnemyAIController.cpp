@@ -12,7 +12,18 @@ void AEnemyAIController::Tick(float DeltaTime)
 
 	if (PlayerPawn)
 	{
-		MoveToActor(PlayerPawn, AcceptanceRadius);
+		float Distance = FVector::Dist(GetPawn()->GetActorLocation(), PlayerPawn->GetActorLocation());
+
+		if (Distance > AcceptanceRadius)
+		{
+			MoveToActor(PlayerPawn, AcceptanceRadius);
+		}
+		else
+		{
+			StopMovement();
+			//maybe add attacks in here later
+		}
 	}
+	
 }
 
