@@ -28,6 +28,14 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//Attacks
+
+	void Fire();
+	void Ice();
+	void Shock();
+
+
+
 protected:
 	
 	UPROPERTY(EditAnywhere)
@@ -47,6 +55,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	float SprintSpeed = 1000.0f;
 
+	//Attack
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	EAttackType CurrentAttackType = EAttackType::Fire;
 
@@ -54,7 +63,7 @@ protected:
 	void StopSprint();
 	void Attack();
 
-
+	
 
 
 

@@ -55,6 +55,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
 
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerCharacter::Fire);
+	PlayerInputComponent->BindAction("Ice", IE_Pressed, this, &APlayerCharacter::Ice);
+	PlayerInputComponent->BindAction("Shock", IE_Pressed, this, &APlayerCharacter::Shock);
+
 }
 
 void APlayerCharacter::MoveForward(float InputValue)
@@ -122,7 +126,29 @@ void APlayerCharacter::Attack()
 			UE_LOG(LogTemp, Warning, TEXT("Hit Nothing"));
 		}
 
+		
+
 }
+
+void APlayerCharacter::Fire()
+{
+	CurrentAttackType = EAttackType::Fire;
+	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to fire"));
+}
+
+void APlayerCharacter::Ice()
+{
+	CurrentAttackType = EAttackType::Ice;
+	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to Ice"));
+}
+
+void APlayerCharacter::Shock()
+{
+	CurrentAttackType = EAttackType::Shock;
+	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to Shock"));
+}
+
+
 
 
 
