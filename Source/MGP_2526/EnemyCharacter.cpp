@@ -2,7 +2,7 @@
 
 
 #include "EnemyCharacter.h"
-#include "EnemyAIController.h"
+#include "Enemy/EnemyAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
