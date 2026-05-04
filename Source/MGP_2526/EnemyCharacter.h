@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
+
 UENUM(BlueprintType)
 enum class EAttackType : uint8
 {
