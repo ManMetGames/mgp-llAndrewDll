@@ -9,6 +9,10 @@
 #include "CollisionQueryParams.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -29,6 +33,16 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (PlayerHUDClass)
+	{
+		PlayerHUD = CreateWidget<UUserWidget>(GetWorld(), PlayerHUDClass);
+
+		if (PlayerHUD)
+		{
+			PlayerHUD->AddToViewport();
+		}
+	}
+	UpdatePlayerHUD();
 }
 
 // Called every frame
@@ -107,7 +121,6 @@ void APlayerCharacter::Attack()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	// 🔥 Choose effect based on attack type
 	UNiagaraSystem* EffectToSpawn = nullptr;
 
 	switch (CurrentAttackType)
@@ -128,10 +141,8 @@ void APlayerCharacter::Attack()
 		break;
 	}
 
-	
 	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 	{
-		
 		if (EffectToSpawn)
 		{
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
@@ -156,35 +167,73 @@ void APlayerCharacter::Attack()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Hit Nothing"));
-
-		//  spawn effect at end of trace if nothing hit
-		if (EffectToSpawn)
-		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-				GetWorld(),
-				EffectToSpawn,
-				End
-			);
-		}
 	}
 }
 
 void APlayerCharacter::Fire()
 {
 	CurrentAttackType = EAttackType::Fire;
+	UpdatePlayerHUD();
 	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to fire"));
 }
 
 void APlayerCharacter::Ice()
 {
 	CurrentAttackType = EAttackType::Ice;
+	UpdatePlayerHUD();
 	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to Ice"));
 }
 
 void APlayerCharacter::Shock()
 {
 	CurrentAttackType = EAttackType::Shock;
+	UpdatePlayerHUD();
 	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to Shock"));
+}
+
+void APlayerCharacter::UpdatePlayerHUD()
+{
+	if (!PlayerHUD) return;
+
+	UProgressBar* HealthBar = Cast<UProgressBar>(
+		PlayerHUD->GetWidgetFromName(TEXT("PlayerHealthBar"))
+	);
+
+	if (HealthBar)
+	{
+		HealthBar->SetPercent(Health / MaxHealth);
+	}
+
+	UTextBlock* AttackText = Cast<UTextBlock>(
+		PlayerHUD->GetWidgetFromName(TEXT("AttackTypeText"))
+	);
+
+	if (AttackText)
+	{
+		FString Text = TEXT("");
+
+		switch (CurrentAttackType)
+		{
+		case EAttackType::Fire:
+				Text = TEXT("Fire");
+				break;
+
+		case EAttackType::Shock:
+			Text = TEXT("Shock");
+			break;
+		
+		case EAttackType::Ice:
+			Text = TEXT("Ice");
+			break;
+
+		default:
+			Text = TEXT("Normal");
+				break;
+
+		
+		}
+		AttackText->SetText(FText::FromString(Text));
+	}
 }
 
 

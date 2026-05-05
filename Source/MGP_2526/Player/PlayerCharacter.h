@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
 #include "EnemyCharacter.h"
 #include "PlayerCharacter.generated.h"
 
 class UNiagaraSystem;
+class UUserWidget;
 
 UCLASS()
 class MGP_2526_API APlayerCharacter : public ACharacter
@@ -70,10 +72,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Attack Effects")
 	UNiagaraSystem* ShockEffect;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> PlayerHUDClass;
+
+	UPROPERTY()
+	UUserWidget* PlayerHUD;
+
+	UPROPERTY(EditAnywhere, Category = "Player Health")
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Player Health")
+	float Health = 100.0f;
+
 
 	void StartSprint();
 	void StopSprint();
 	void Attack();
+	void UpdatePlayerHUD();
 
 	
 
