@@ -7,6 +7,7 @@
 #include "EnemyCharacter.h"
 #include "PlayerCharacter.generated.h"
 
+class UNiagaraSystem;
 
 UCLASS()
 class MGP_2526_API APlayerCharacter : public ACharacter
@@ -58,6 +59,17 @@ protected:
 	//Attack
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	EAttackType CurrentAttackType = EAttackType::Fire;
+	
+	//Effects
+	UPROPERTY(EditAnywhere, Category = "Attack Effects")
+	UNiagaraSystem* FireEffect;
+	
+	UPROPERTY(EditAnywhere, Category = "Attack Effects")
+	UNiagaraSystem* IceEffect;
+
+	UPROPERTY(EditAnywhere, Category = "Attack Effects")
+	UNiagaraSystem* ShockEffect;
+
 
 	void StartSprint();
 	void StopSprint();

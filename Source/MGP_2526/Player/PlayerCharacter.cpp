@@ -1,4 +1,4 @@
-
+﻿
 
 
 #include "MGP_2526/Player/PlayerCharacter.h"
@@ -7,6 +7,8 @@
 #include "EnemyCharacter.h"
 #include "DrawDebugHelpers.h"
 #include "CollisionQueryParams.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -95,39 +97,76 @@ void APlayerCharacter::StopSprint()
 
 void APlayerCharacter::Attack()
 {
-
 	UE_LOG(LogTemp, Warning, TEXT("Attack Pressed"));
+
 	FHitResult Hit;
 
 	FVector Start = Camera->GetComponentLocation() + Camera->GetForwardVector() * 50.0f;
 	FVector End = Start + Camera->GetForwardVector() * 3000.0f;
 
-		FCollisionQueryParams Params;
-	    Params.AddIgnoredActor(this);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
 
-		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 2.0f);
+	// 🔥 Choose effect based on attack type
+	UNiagaraSystem* EffectToSpawn = nullptr;
 
-		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	switch (CurrentAttackType)
+	{
+	case EAttackType::Fire:
+		EffectToSpawn = FireEffect;
+		break;
+
+	case EAttackType::Ice:
+		EffectToSpawn = IceEffect;
+		break;
+
+	case EAttackType::Shock:
+		EffectToSpawn = ShockEffect;
+		break;
+
+	default:
+		break;
+	}
+
+	
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		
+		if (EffectToSpawn)
 		{
-			AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Hit.GetActor());
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				EffectToSpawn,
+				Hit.ImpactPoint
+			);
+		}
 
-			if (Enemy)
-			{
-				Enemy->TakeAttackDamage(25.0f, CurrentAttackType);
-				UE_LOG(LogTemp, Warning, TEXT("Enemy Hit"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Hit actor, but it is not an enemy"));
-			}
+		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Hit.GetActor());
+
+		if (Enemy)
+		{
+			Enemy->TakeAttackDamage(25.0f, CurrentAttackType);
+			UE_LOG(LogTemp, Warning, TEXT("Enemy Hit"));
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit Nothing"));
+			UE_LOG(LogTemp, Warning, TEXT("Hit actor, but it is not an enemy"));
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit Nothing"));
 
-		
-
+		//  spawn effect at end of trace if nothing hit
+		if (EffectToSpawn)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				EffectToSpawn,
+				End
+			);
+		}
+	}
 }
 
 void APlayerCharacter::Fire()
