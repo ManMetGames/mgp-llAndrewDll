@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/WidgetComponent.h"
 #include "EnemyCharacter.generated.h"
+
 
 
 UENUM(BlueprintType)
@@ -40,7 +42,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Enemy")
 	EAttackType Weakness = EAttackType::Fire;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	UWidgetComponent* HealthWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Enemy")
+	float MaxHealth = 100.0f;
+
 	void TakeAttackDamage(float Damage, EAttackType AttackType);
+
+	void UpdateHealthBar();
+
+	void ShowHitText(FString Text, FLinearColor TextColour);
 
 
 

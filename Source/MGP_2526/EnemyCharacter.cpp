@@ -4,6 +4,11 @@
 #include "EnemyCharacter.h"
 #include "Enemy/EnemyAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+#include "Blueprint/UserWidget.h"
+#include "Math/Color.h"
+
 
 // Sets default values
 AEnemyCharacter::AEnemyCharacter()
@@ -21,12 +26,25 @@ AEnemyCharacter::AEnemyCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 300.0f, 0.0f);
 
+	HealthWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidget"));
+	HealthWidget->SetupAttachment(RootComponent);
+	HealthWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	HealthWidget->SetDrawSize(FVector2D(300.0f, 80.0f));
+	HealthWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 220.0f));
+
 }
 
 // Called when the game starts or when spawned
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	MaxHealth = Health;
+	if (HealthWidget)
+	{
+		HealthWidget->InitWidget();
+	}
+	UpdateHealthBar();
 	
 }
 
@@ -39,18 +57,28 @@ void AEnemyCharacter::Tick(float DeltaTime)
 void AEnemyCharacter::TakeAttackDamage(float damage, EAttackType AttackType)
 {
 	float FinalDamage = damage;
+	FString HitText = TEXT("");
+	FLinearColor TextColour;
 
 	if (AttackType == Weakness)
 	{
 		FinalDamage *= 2.0f;
+		HitText = TEXT("WEAK HIT!");
+		TextColour = FLinearColor::Red;
 		UE_LOG(LogTemp, Warning, TEXT("WEAK HIT"));
 	}
 	else
 	{
+		FinalDamage *= 0.25f;
+		HitText = TEXT("RESISTED!");
+		TextColour = FLinearColor::Gray;
 		UE_LOG(LogTemp, Warning, TEXT("Normal hit"));
 	}
 
 	Health -= FinalDamage;
+	UpdateHealthBar();
+	FString DamageText = FString::Printf(TEXT("%s %.0f"), *HitText, FinalDamage);
+	ShowHitText(DamageText, TextColour);
 
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Health: %f"), Health);
 
@@ -59,5 +87,47 @@ void AEnemyCharacter::TakeAttackDamage(float damage, EAttackType AttackType)
 		Destroy();
 	}
 }
+
+void AEnemyCharacter::UpdateHealthBar()
+{
+	if (!HealthWidget) return;
+
+	UUserWidget* Widget = HealthWidget->GetUserWidgetObject();
+	if (!Widget) return;
+
+	UProgressBar* Bar = Cast<UProgressBar>(Widget->GetWidgetFromName(TEXT("HealthBar")));
+
+	if (Bar)
+	{
+		Bar->SetPercent(Health / MaxHealth);
+	}
+}
+
+void AEnemyCharacter::ShowHitText(FString Text, FLinearColor TextColour)
+{
+	if (!HealthWidget) return;
+
+	UUserWidget* Widget = HealthWidget->GetUserWidgetObject();
+	if (!Widget) return;
+
+	static FName FunctionName(TEXT("SetHitText"));
+	UFunction* Function = Widget->FindFunction(FunctionName);
+
+	if (Function)
+	{
+		struct FParams
+		{
+			FString Text;
+			FLinearColor Colour;
+		};
+
+		FParams Params;
+		Params.Text = Text;
+		Params.Colour = TextColour;
+
+		Widget->ProcessEvent(Function, &Params);
+	}
+}
+
 
 
