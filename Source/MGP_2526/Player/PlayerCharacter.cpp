@@ -123,7 +123,7 @@ void APlayerCharacter::Attack()
 
 	UNiagaraSystem* EffectToSpawn = nullptr;
 
-	switch (CurrentAttackType)
+	switch (CurrentAttackType) // Effect Changes depending of the damage type selected.
 	{
 	case EAttackType::Fire:
 		EffectToSpawn = FireEffect;
@@ -170,6 +170,8 @@ void APlayerCharacter::Attack()
 	}
 }
 
+//Functions for switching the players damage type.
+
 void APlayerCharacter::Fire()
 {
 	CurrentAttackType = EAttackType::Fire;
@@ -191,6 +193,8 @@ void APlayerCharacter::Shock()
 	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to Shock"));
 }
 
+// Player HUD Function
+
 void APlayerCharacter::UpdatePlayerHUD()
 {
 	if (!PlayerHUD) return;
@@ -208,7 +212,9 @@ void APlayerCharacter::UpdatePlayerHUD()
 		PlayerHUD->GetWidgetFromName(TEXT("AttackTypeText"))
 	);
 
-	if (AttackText)
+	//This changes the text in the UI depends on what damage type you are using.
+	
+	if (AttackText) 
 	{
 		FString Text = TEXT("");
 

@@ -16,7 +16,7 @@ AEnemyCharacter::AEnemyCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	AIControllerClass = AEnemyCharacter::StaticClass();
+	AIControllerClass = AEnemyAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
@@ -62,7 +62,7 @@ void AEnemyCharacter::TakeAttackDamage(float damage, EAttackType AttackType)
 
 	if (AttackType == Weakness)
 	{
-		FinalDamage *= 2.0f;
+		FinalDamage *= 1.5f;
 		HitText = TEXT("WEAK HIT!");
 		TextColour = FLinearColor::Red;
 		UE_LOG(LogTemp, Warning, TEXT("WEAK HIT"));
@@ -100,6 +100,25 @@ void AEnemyCharacter::UpdateHealthBar()
 	if (Bar)
 	{
 		Bar->SetPercent(Health / MaxHealth);
+
+		switch (Weakness)
+		{
+		case EAttackType::Fire:
+			Bar->SetFillColorAndOpacity(FLinearColor::Red);
+			break;
+
+		case EAttackType::Ice:
+			Bar->SetFillColorAndOpacity(FLinearColor(0.4f, 0.8f, 1.0f, 1.0f));
+			break;
+
+		case EAttackType::Shock:
+			Bar->SetFillColorAndOpacity(FLinearColor(0.0f, 0.2f, 0.8f, 1.0f));
+			break;
+
+		default:
+			Bar->SetFillColorAndOpacity(FLinearColor::White);
+			break;
+		}
 	}
 }
 
