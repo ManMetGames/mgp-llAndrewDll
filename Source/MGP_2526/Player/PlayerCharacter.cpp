@@ -217,28 +217,34 @@ void APlayerCharacter::UpdatePlayerHUD()
 	if (AttackText) 
 	{
 		FString Text = TEXT("");
+		FSlateColor TextColour;
 
 		switch (CurrentAttackType)
 		{
 		case EAttackType::Fire:
 				Text = TEXT("Fire");
+				TextColour = FSlateColor(FLinearColor::Red);
 				break;
 
 		case EAttackType::Shock:
 			Text = TEXT("Shock");
+			TextColour = FSlateColor(FLinearColor(0.0f, 0.2f, 0.8f, 1.0f));
 			break;
 		
 		case EAttackType::Ice:
 			Text = TEXT("Ice");
+			TextColour = FSlateColor(FLinearColor(0.4f, 0.8f, 1.0f, 1.0f));
 			break;
 
 		default:
 			Text = TEXT("Normal");
+			TextColour = FSlateColor(FLinearColor::White);
 				break;
 
 		
 		}
 		AttackText->SetText(FText::FromString(Text));
+		AttackText->SetColorAndOpacity(TextColour);
 	}
 }
 
