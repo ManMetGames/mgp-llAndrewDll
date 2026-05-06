@@ -10,7 +10,7 @@
 
 
 UENUM(BlueprintType)
-enum class EAttackType : uint8
+enum class EAttackType : uint8 // defines the elemental attack types used in the combat system
 {
 	Normal,
 	Fire,

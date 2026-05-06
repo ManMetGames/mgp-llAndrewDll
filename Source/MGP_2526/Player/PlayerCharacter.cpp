@@ -20,7 +20,7 @@ APlayerCharacter::APlayerCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera"));
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera")); //Attaches a camera to the player object
 	Camera->SetupAttachment(RootComponent);
 	Camera->bUsePawnControlRotation = true;
 
@@ -33,7 +33,7 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (PlayerHUDClass)
+	if (PlayerHUDClass) //Creates and displays the players HUD at runtime.
 	{
 		PlayerHUD = CreateWidget<UUserWidget>(GetWorld(), PlayerHUDClass);
 
@@ -52,7 +52,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 }
 
-// Called to bind functionality to input
+// Binds movement, camera and combat inputs to player functions
+
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -76,6 +77,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction("Shock", IE_Pressed, this, &APlayerCharacter::Shock);
 
 }
+
+//Movement functions
 
 void APlayerCharacter::MoveForward(float InputValue)
 {
@@ -109,7 +112,7 @@ void APlayerCharacter::StopSprint()
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
-void APlayerCharacter::Attack()
+void APlayerCharacter::Attack() // Attack function
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack Pressed"));
 
@@ -123,7 +126,7 @@ void APlayerCharacter::Attack()
 
 	UNiagaraSystem* EffectToSpawn = nullptr;
 
-	switch (CurrentAttackType) // Effect Changes depending of the damage type selected.
+	switch (CurrentAttackType) // Effect Changes depending on the damage type selected.
 	{
 	case EAttackType::Fire:
 		EffectToSpawn = FireEffect;
@@ -141,7 +144,7 @@ void APlayerCharacter::Attack()
 		break;
 	}
 
-	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params)) //Performs a line trace attack and applies elemental damage
 	{
 		if (EffectToSpawn)
 		{
@@ -154,7 +157,7 @@ void APlayerCharacter::Attack()
 
 		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Hit.GetActor());
 
-		if (Enemy)
+		if (Enemy) //Checks if the trace hit an enemy actor before applying damage
 		{
 			Enemy->TakeAttackDamage(25.0f, CurrentAttackType);
 			UE_LOG(LogTemp, Warning, TEXT("Enemy Hit"));
@@ -195,7 +198,7 @@ void APlayerCharacter::Shock()
 
 // Player HUD Function
 
-void APlayerCharacter::UpdatePlayerHUD()
+void APlayerCharacter::UpdatePlayerHUD() //Updates the player HUD to reflect current health and selected element
 {
 	if (!PlayerHUD) return;
 
@@ -212,7 +215,7 @@ void APlayerCharacter::UpdatePlayerHUD()
 		PlayerHUD->GetWidgetFromName(TEXT("AttackTypeText"))
 	);
 
-	//This changes the text in the UI depends on what damage type you are using.
+	//Changes attack type text and colour dynamically.
 	
 	if (AttackText) 
 	{

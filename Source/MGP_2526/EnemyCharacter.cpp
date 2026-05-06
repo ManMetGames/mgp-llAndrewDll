@@ -16,7 +16,7 @@ AEnemyCharacter::AEnemyCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	AIControllerClass = AEnemyAIController::StaticClass();
+	AIControllerClass = AEnemyAIController::StaticClass(); // assigns a custom AI controller so enemies can chase and face the player.
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
@@ -26,7 +26,7 @@ AEnemyCharacter::AEnemyCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 300.0f, 0.0f);
 
-	HealthWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidget"));
+	HealthWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidget")); //Creates a world-space widget used for the enemy health bar and damage feedback.
 	HealthWidget->SetupAttachment(RootComponent);
 	HealthWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	HealthWidget->SetDrawSize(FVector2D(300.0f, 80.0f));
@@ -39,7 +39,7 @@ void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MaxHealth = Health;
+	MaxHealth = Health; // stores the starting health, so percentages can be calculated correctly.
 	if (HealthWidget)
 	{
 		HealthWidget->InitWidget();
@@ -54,7 +54,7 @@ void AEnemyCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-void AEnemyCharacter::TakeAttackDamage(float damage, EAttackType AttackType)
+void AEnemyCharacter::TakeAttackDamage(float damage, EAttackType AttackType) //Applies weakness/resistance multipliers based on the player's current attack type
 {
 	float FinalDamage = damage;
 	FString HitText = TEXT("");
@@ -88,7 +88,7 @@ void AEnemyCharacter::TakeAttackDamage(float damage, EAttackType AttackType)
 	}
 }
 
-void AEnemyCharacter::UpdateHealthBar()
+void AEnemyCharacter::UpdateHealthBar() // Updates the enemy health bar and colours based on the enemy's weakness.
 {
 	if (!HealthWidget) return;
 
@@ -122,7 +122,7 @@ void AEnemyCharacter::UpdateHealthBar()
 	}
 }
 
-void AEnemyCharacter::ShowHitText(FString Text, FLinearColor TextColour)
+void AEnemyCharacter::ShowHitText(FString Text, FLinearColor TextColour) //Sends floating combat text and colour data to the enemy UI widget.
 {
 	if (!HealthWidget) return;
 
