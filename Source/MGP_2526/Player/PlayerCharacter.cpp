@@ -1,0 +1,258 @@
+﻿
+
+
+#include "MGP_2526/Player/PlayerCharacter.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "EnemyCharacter.h"
+#include "DrawDebugHelpers.h"
+#include "CollisionQueryParams.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+
+// Sets default values
+APlayerCharacter::APlayerCharacter()
+{
+ 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera")); //Attaches a camera to the player object
+	Camera->SetupAttachment(RootComponent);
+	Camera->bUsePawnControlRotation = true;
+
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+}
+
+// Called when the game starts or when spawned
+void APlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (PlayerHUDClass) //Creates and displays the players HUD at runtime.
+	{
+		PlayerHUD = CreateWidget<UUserWidget>(GetWorld(), PlayerHUDClass);
+
+		if (PlayerHUD)
+		{
+			PlayerHUD->AddToViewport();
+		}
+	}
+	UpdatePlayerHUD();
+}
+
+// Called every frame
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+// Binds movement, camera and combat inputs to player functions
+
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprint);
+	
+	
+	PlayerInputComponent->BindAxis("MoveForward", this,  &APlayerCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this,  &APlayerCharacter::MoveRight);
+
+	PlayerInputComponent->BindAxis("TurnCamera", this, &APlayerCharacter::TurnCamera);
+	PlayerInputComponent->BindAxis("LookUp", this, &APlayerCharacter::LookUp);
+
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &APlayerCharacter::Attack);
+
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerCharacter::Fire);
+	PlayerInputComponent->BindAction("Ice", IE_Pressed, this, &APlayerCharacter::Ice);
+	PlayerInputComponent->BindAction("Shock", IE_Pressed, this, &APlayerCharacter::Shock);
+
+}
+
+//Movement functions
+
+void APlayerCharacter::MoveForward(float InputValue)
+{
+	FVector ForwardDirection = GetActorForwardVector();
+	AddMovementInput(ForwardDirection, InputValue);
+}
+
+void APlayerCharacter::MoveRight(float InputValue)
+{
+	FVector RightDirection = GetActorRightVector();
+	AddMovementInput(RightDirection, InputValue);
+}
+
+void APlayerCharacter::TurnCamera(float InputValue)
+{
+	AddControllerYawInput(InputValue);
+}
+
+void APlayerCharacter::LookUp(float InputValue)
+{
+	AddControllerPitchInput(InputValue);
+}
+
+void APlayerCharacter::StartSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+}
+
+void APlayerCharacter::StopSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+}
+
+void APlayerCharacter::Attack() // Attack function
+{
+	UE_LOG(LogTemp, Warning, TEXT("Attack Pressed"));
+
+	FHitResult Hit;
+
+	FVector Start = Camera->GetComponentLocation() + Camera->GetForwardVector() * 50.0f;
+	FVector End = Start + Camera->GetForwardVector() * 3000.0f;
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	UNiagaraSystem* EffectToSpawn = nullptr;
+
+	switch (CurrentAttackType) // Effect Changes depending on the damage type selected.
+	{
+	case EAttackType::Fire:
+		EffectToSpawn = FireEffect;
+		break;
+
+	case EAttackType::Ice:
+		EffectToSpawn = IceEffect;
+		break;
+
+	case EAttackType::Shock:
+		EffectToSpawn = ShockEffect;
+		break;
+
+	default:
+		break;
+	}
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params)) //Performs a line trace attack and applies elemental damage
+	{
+		if (EffectToSpawn)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				EffectToSpawn,
+				Hit.ImpactPoint
+			);
+		}
+
+		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Hit.GetActor());
+
+		if (Enemy) //Checks if the trace hit an enemy actor before applying damage
+		{
+			Enemy->TakeAttackDamage(25.0f, CurrentAttackType);
+			UE_LOG(LogTemp, Warning, TEXT("Enemy Hit"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit actor, but it is not an enemy"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit Nothing"));
+	}
+}
+
+//Functions for switching the players damage type.
+
+void APlayerCharacter::Fire()
+{
+	CurrentAttackType = EAttackType::Fire;
+	UpdatePlayerHUD();
+	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to fire"));
+}
+
+void APlayerCharacter::Ice()
+{
+	CurrentAttackType = EAttackType::Ice;
+	UpdatePlayerHUD();
+	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to Ice"));
+}
+
+void APlayerCharacter::Shock()
+{
+	CurrentAttackType = EAttackType::Shock;
+	UpdatePlayerHUD();
+	UE_LOG(LogTemp, Warning, TEXT("YYou have switched to Shock"));
+}
+
+// Player HUD Function
+
+void APlayerCharacter::UpdatePlayerHUD() //Updates the player HUD to reflect current health and selected element
+{
+	if (!PlayerHUD) return;
+
+	UProgressBar* HealthBar = Cast<UProgressBar>(
+		PlayerHUD->GetWidgetFromName(TEXT("PlayerHealthBar"))
+	);
+
+	if (HealthBar)
+	{
+		HealthBar->SetPercent(Health / MaxHealth);
+	}
+
+	UTextBlock* AttackText = Cast<UTextBlock>(
+		PlayerHUD->GetWidgetFromName(TEXT("AttackTypeText"))
+	);
+
+	//Changes attack type text and colour dynamically.
+	
+	if (AttackText) 
+	{
+		FString Text = TEXT("");
+		FSlateColor TextColour;
+
+		switch (CurrentAttackType)
+		{
+		case EAttackType::Fire:
+				Text = TEXT("Fire");
+				TextColour = FSlateColor(FLinearColor::Red);
+				break;
+
+		case EAttackType::Shock:
+			Text = TEXT("Shock");
+			TextColour = FSlateColor(FLinearColor(0.0f, 0.2f, 0.8f, 1.0f));
+			break;
+		
+		case EAttackType::Ice:
+			Text = TEXT("Ice");
+			TextColour = FSlateColor(FLinearColor(0.4f, 0.8f, 1.0f, 1.0f));
+			break;
+
+		default:
+			Text = TEXT("Normal");
+			TextColour = FSlateColor(FLinearColor::White);
+				break;
+
+		
+		}
+		AttackText->SetText(FText::FromString(Text));
+		AttackText->SetColorAndOpacity(TextColour);
+	}
+}
+
+
+
+
+
+
